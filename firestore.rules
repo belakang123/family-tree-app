@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /members/{memberId} {
+      // Siapa saja bisa membaca pohon keluarga (read-only publik).
+      allow read: if true;
+
+      // Hanya boleh membuat dokumen baru (tambah anggota), tidak boleh
+      // mengubah/menghapus dari client — sesuaikan bila Anda menambah
+      // fitur edit/hapus di kemudian hari.
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.gender in ['male', 'female']
+                    && (request.resource.data.parentId == null
+                        || request.resource.data.parentId is string);
+
+      allow update, delete: if false;
+    }
+  }
+}
