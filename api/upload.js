@@ -2,6 +2,49 @@ import { google } from 'googleapis';
 import formidable from 'formidable';
 import fs from 'fs';
 
+function parseServiceAccountJson(value) {
+  if (!value) return null;
+  try {
+    const json = JSON.parse(value);
+    if (!json.client_email || !json.private_key) return null;
+    return {
+      client_email: json.client_email,
+      private_key: json.private_key.replace(/\\n/g, '\n'),
+    };
+  } catch (err) {
+    console.error('Invalid GOOGLE_SERVICE_ACCOUNT_JSON:', err.message || err);
+    return null;
+  }
+}
+
+async function getDriveClient() {
+  const serviceAccount = parseServiceAccountJson(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  if (serviceAccount) {
+    const auth = new google.auth.GoogleAuth({
+      credentials: serviceAccount,
+      scopes: ['https://www.googleapis.com/auth/drive'],
+    });
+    return google.drive({ version: 'v3', auth });
+  }
+
+  if (
+    process.env.GOOGLE_OAUTH_CLIENT_ID &&
+    process.env.GOOGLE_OAUTH_CLIENT_SECRET &&
+    process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+  ) {
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_OAUTH_CLIENT_ID,
+      process.env.GOOGLE_OAUTH_CLIENT_SECRET
+    );
+    oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN });
+    return google.drive({ version: 'v3', auth: oauth2Client });
+  }
+
+  throw new Error(
+    'Missing Google Drive auth configuration. Set GOOGLE_SERVICE_ACCOUNT_JSON or OAuth2 env vars.'
+  );
+}
+
 // Matikan body parser bawaan Vercel karena kita menangani multipart/form-data secara manual
 export const config = {
   api: {
@@ -38,7 +81,7 @@ export default async function handler(req, res) {
       );
       oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN });
 
-      const drive = google.drive({ version: 'v3', auth: oauth2Client });
+      const drive = await getDriveClient();
 
       // Unggah ke folder spesifik milik akun yang sama (tidak perlu di-share ke siapa pun lagi)
       const fileMetadata = {
@@ -64,9 +107,9 @@ export default async function handler(req, res) {
         requestBody: { role: 'reader', type: 'anyone' },
       });
 
-      // Format URL gambar direct-link Google Drive (gratis, tanpa perlu bucket storage berbayar)
-      const publicUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
-      return res.status(200).json({ url: publicUrl });
+      // Format URL gambar - gunakan Google Drive direct download URL yang lebih aman untuk embed di <img>
+      const publicUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      return res.status(200).json({ url: publicUrl, fileId });
     } catch (uploadError) {
       console.error('Upload error:', uploadError);
       return res.status(500).json({ error: uploadError.message });

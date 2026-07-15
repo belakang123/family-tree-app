@@ -9,7 +9,32 @@ body,
   margin: 0;
 }
 
+@layer base {
+  body {
+    @apply bg-[#F7F5F0] text-slate-900;
+  }
+  html.dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+}
+
 /* Sedikit sentuhan halus pada garis edge React Flow */
 .react-flow__edge-path {
   stroke-linecap: round;
+}
+
+
+/* Used by InputModal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 220ms ease-out both;
 }
