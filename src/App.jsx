@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import ReactFlow, {
   ReactFlowProvider,
   Background,
@@ -10,7 +10,8 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { collection, onSnapshot, addDoc, serverTimestamp, updateDoc, deleteDoc, writeBatch, doc } from 'firebase/firestore';
-import { TreePine, Search, Plus, Pencil, Eye, Moon, Sun } from 'lucide-react';
+import { TreePine, Search, Plus, Pencil, Eye, Moon, Sun, Download } from 'lucide-react';
+import { toPng } from 'html-to-image';
 
 const THEME_STORAGE_KEY = 'theme';
 
@@ -55,6 +56,7 @@ function FamilyTreeApp() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { setCenter } = useReactFlow();
+  const treeWrapRef = useRef(null);
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -319,6 +321,33 @@ function FamilyTreeApp() {
 
   const themeIcon = themePref === 'dark' ? 'dark' : themePref === 'light' ? 'light' : isDarkEffective;
 
+  const exportTreeAsPng = useCallback(async () => {
+    try {
+      if (!treeWrapRef.current) return;
+
+      // Make sure layout finished and fonts rendered a bit
+      await new Promise((r) => setTimeout(r, 200));
+
+      const bg = isDarkEffective ? '#0f172a' : '#F7F5F0';
+
+      const dataUrl = await toPng(treeWrapRef.current, {
+        cacheBust: true,
+        pixelRatio: Math.max(2, window.devicePixelRatio || 2),
+        backgroundColor: bg,
+      });
+
+      const link = document.createElement('a');
+      link.download = 'pohon-silsilah.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Export PNG gagal:', err);
+      alert('Gagal mengekspor gambar. Coba lagi.');
+    }
+  }, [isDarkEffective]);
+
   const cycleTheme = () => {
     // auto -> dark -> light -> auto
     setThemePref((prev) => {
@@ -422,7 +451,7 @@ function FamilyTreeApp() {
       </header>
 
       {/* Canvas */}
-      <div className="relative flex-1">
+      <div className="relative flex-1" ref={treeWrapRef}>
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-[#F7F5F0] dark:bg-slate-950 z-20">
             <p className="text-slate-400 dark:text-slate-300 text-sm">Memuat data keluarga...</p>
@@ -498,10 +527,25 @@ function FamilyTreeApp() {
         )}
       </button>
 
-      {/* Floating Action Button (FAB) - Edit/Preview Toggle */}
+      {/* Floating Action Buttons */}
+      {/* Export PNG */}
+      <button
+        onClick={exportTreeAsPng}
+        disabled={loading || totalMembers === 0}
+        className={`fixed bottom-24 right-6 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white font-semibold transition-all hover:scale-110 active:scale-95 ${
+          loading || totalMembers === 0
+            ? 'bg-slate-400 cursor-not-allowed'
+            : 'bg-emerald-500 hover:bg-emerald-600'
+        }`}
+        title="Export pohon silsilah (PNG)"
+        aria-label="Export pohon silsilah PNG"
+      >
+        <Download size={18} />
+      </button>
+
+      {/* FAB - Edit/Preview Toggle */}
       <button
         onClick={toggleEditMode}
-
         className={`fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white font-semibold transition-all hover:scale-110 active:scale-95 ${isEditMode
             ? 'bg-red-500 hover:bg-red-600'
             : 'bg-cyan-500 hover:bg-cyan-600'
