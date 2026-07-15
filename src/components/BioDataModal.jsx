@@ -79,8 +79,7 @@ export default function BioDataModal({ member, isOpen, onClose }) {
         className="absolute top-4 right-4 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
         title="Tutup"
       >
-
-            <X size={20} className="text-slate-600" />
+            <X size={20} className="text-slate-600 dark:text-slate-300" />
           </button>
 
           {/* Biodata Content */}
@@ -101,7 +100,7 @@ export default function BioDataModal({ member, isOpen, onClose }) {
               )}
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-900">{member.name}</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{member.name}</h2>
 
             <span className={`inline-block mt-2 text-xs px-3 py-1 rounded-full font-semibold text-white ${badgeColor}`}>
               {isMale ? 'Laki-laki' : 'Perempuan'}
@@ -112,15 +111,15 @@ export default function BioDataModal({ member, isOpen, onClose }) {
 
             {member.birthDate && (
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase">Tanggal Lahir</p>
-                <p className="text-sm text-slate-800 font-medium">{formatDate(member.birthDate)}</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Tanggal Lahir</p>
+                <p className="text-sm text-slate-800 dark:text-slate-100 font-medium">{formatDate(member.birthDate)}</p>
               </div>
             )}
 
             {age !== null && (
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase">Umur</p>
-                <p className="text-sm text-slate-800 font-medium">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Umur</p>
+                <p className="text-sm text-slate-800 dark:text-slate-100 font-medium">
                   {isDeceased ? `${age} tahun (saat wafat)` : `${age} tahun`}
                 </p>
               </div>
@@ -130,37 +129,37 @@ export default function BioDataModal({ member, isOpen, onClose }) {
               <p className="text-xs font-semibold text-slate-500 uppercase">Status</p>
               {isDeceased ? (
                 <div>
-                  <p className="text-sm text-stone-700 font-medium">Wafat</p>
+                  <p className="text-sm text-stone-700 dark:text-stone-200 font-medium">Wafat</p>
                   {member.deathDate && (
-                    <p className="text-xs text-stone-600 mt-0.5">
+                    <p className="text-xs text-stone-600 dark:text-stone-300 mt-0.5">
                       Tanggal: {formatDate(member.deathDate)}
                       {age !== null ? ` · ${getYear(member.deathDate)}` : ''}
                     </p>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-emerald-700 font-medium">Hidup</p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-200 font-medium">Hidup</p>
               )}
             </div>
 
             {member.alamat && (
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase">Alamat</p>
-                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{member.alamat}</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Alamat</p>
+                <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">{member.alamat}</p>
               </div>
             )}
 
             {member.noHp && (
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase">No HP</p>
-                <p className="text-sm text-slate-700 font-medium">{member.noHp}</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">No HP</p>
+                <p className="text-sm text-slate-700 dark:text-slate-200 font-medium">{member.noHp}</p>
               </div>
             )}
 
             {member.notes && (
               <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase">Catatan</p>
-                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{member.notes}</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Catatan</p>
+                <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">{member.notes}</p>
               </div>
             )}
           </div>
