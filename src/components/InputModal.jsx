@@ -185,7 +185,7 @@ export default function InputModal({ isOpen, onClose, parentName, isRoot, onSave
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Contoh: Budi Santoso"
-              className="w-full border border-slate-200 p-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full border border-slate-200 p-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white/95 dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
 
