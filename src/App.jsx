@@ -98,7 +98,9 @@ function FamilyTreeApp() {
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
               Anda akan menghapus{' '}
               <span className="font-semibold">{confirmDelete.memberName}</span>{' '}
-              dan semua keturunannya. Tindakan ini tidak dapat dibatalkan.
+              beserta <span className="font-semibold">pasangannya</span>, semua{' '}
+              <span className="font-semibold">keturunan</span>, dan pasangan dari tiap keturunan.
+              Tindakan ini <span className="text-red-500 font-semibold">tidak dapat dibatalkan</span>.
             </p>
             <div className="flex gap-2 mt-6">
               <button

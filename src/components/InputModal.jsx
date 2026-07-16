@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, UserPlus } from 'lucide-react';
+import { compressImage } from '../utils/imageCompressor';
 
 /* ─────────────────────────────────────────────
    Reusable field components
@@ -258,10 +259,20 @@ export default function InputModal({
     }));
   };
 
-  // ── Upload photo helper
+  // ── Upload photo helper (dengan kompresi otomatis)
   const uploadPhoto = async (photoFile) => {
+    // Kompres gambar ke maks 900KB dan 1024px sebelum kirim ke server
+    // agar tidak melebihi batas payload serverless function (413)
+    let fileToUpload;
+    try {
+      fileToUpload = await compressImage(photoFile, { maxSizeMB: 0.9, maxWidthOrHeight: 1024 });
+    } catch (compressErr) {
+      console.warn('Kompresi gambar gagal, coba kirim asli:', compressErr);
+      fileToUpload = photoFile;
+    }
+
     const formData = new FormData();
-    formData.append('photo', photoFile);
+    formData.append('photo', fileToUpload);
     const res = await fetch('/api/upload', { method: 'POST', body: formData });
     if (!res.ok) throw new Error('Upload foto gagal');
     const result = await res.json();

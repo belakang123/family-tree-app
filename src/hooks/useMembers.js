@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, onSnapshot, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { collectDescendantIds } from '../utils/tree';
+import { collectAllDeleteIds } from '../utils/tree';
 
 export function useMembers() {
   const [members, setMembers] = useState([]);
@@ -38,31 +38,43 @@ export function useMembers() {
   const handleConfirmDelete = useCallback(async () => {
     const { memberId } = confirmDelete;
     try {
-      const descendantIds = collectDescendantIds(memberId, members);
-      const allIdsToDelete = [memberId, ...descendantIds];
+      // Kumpulkan semua ID yang harus dihapus:
+      // anggota yang dipilih + pasangannya + semua keturunan + pasangan tiap keturunan
+      const allIdsToDelete = collectAllDeleteIds(memberId, members);
       const membersToDelete = allIdsToDelete
         .map((id) => members.find((m) => m.id === id))
         .filter(Boolean);
 
+      // Hapus semua foto dari Google Drive terlebih dahulu
       await Promise.allSettled(
         membersToDelete.map(async (member) => {
           if (!member?.photoUrl && !member?.photoFileId) return;
           await fetch('/api/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ photoUrl: member.photoUrl, fileId: member.photoFileId }),
+            body: JSON.stringify({
+              photoUrl: member.photoUrl,
+              fileId: member.photoFileId,
+            }),
           });
         })
       );
 
-      const spouseMember = members.find((m) => m.spouseId === memberId);
+      // Hapus semua dokumen Firestore sekaligus dengan batch
+      // Jika ada anggota lain di luar set hapus yang memiliki spouseId ke salah satu
+      // anggota yang dihapus, putuskan relasinya
+      const deletedIdSet = new Set(allIdsToDelete);
+      const orphanedSpouses = members.filter(
+        (m) => !deletedIdSet.has(m.id) && m.spouseId && deletedIdSet.has(m.spouseId)
+      );
+
       const batch = writeBatch(db);
-      if (spouseMember) {
-        batch.update(doc(db, 'members', spouseMember.id), { spouseId: null });
+      for (const orphan of orphanedSpouses) {
+        batch.update(doc(db, 'members', orphan.id), { spouseId: null });
       }
-      allIdsToDelete.forEach((id) => {
+      for (const id of allIdsToDelete) {
         batch.delete(doc(db, 'members', id));
-      });
+      }
       await batch.commit();
 
       setConfirmDelete({ isOpen: false, memberId: null, memberName: '' });
