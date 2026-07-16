@@ -6,7 +6,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { TreePine, Search, Plus, Pencil, Eye, Moon, Sun, Download, BookOpen } from 'lucide-react';
+import { TreePine, Search, Plus, Pencil, Eye, Moon, Sun, Download, BookOpen, X } from 'lucide-react';
 
 import FamilyNode from './components/FamilyNode';
 import FamilyPairNode from './components/FamilyPairNode';
@@ -29,10 +29,12 @@ const nodeTypes = {
    Inner app — must live inside ReactFlowProvider
 ───────────────────────────────────────────────────────── */
 function FamilyTreeApp() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [searchTerm,     setSearchTerm]     = useState('');
+  const [isEditMode,     setIsEditMode]     = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
-  const treeWrapRef = useRef(null);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const treeWrapRef  = useRef(null);
+  const mobileInputRef = useRef(null);
 
   // ── Custom hooks
   const { isDarkEffective, cycleTheme } = useTheme();
@@ -124,57 +126,97 @@ function FamilyTreeApp() {
       <BioDataModal member={selectedMember} isOpen={showBioDataModal} onClose={handleCloseBioData} />
 
       {/* ── Header ── */}
-      <header className="flex items-center justify-between gap-4 px-5 py-3 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-slate-200/60 shadow-sm z-10 dark:bg-slate-950/60 dark:supports-[backdrop-filter]:bg-slate-950/50 dark:border-slate-800">
-        {/* Branding */}
-        <div className="flex items-center gap-2 shrink-0">
-          <TreePine className="text-emerald-500" size={22} />
-          <div>
-            <h1 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">
-              Dashboard Silsilah Keluarga
-            </h1>
-            <p className="text-[11px] text-slate-400 leading-tight">{totalMembers} anggota tercatat</p>
-          </div>
-        </div>
+      <header className="flex items-center gap-3 px-4 py-3 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-slate-200/60 shadow-sm z-10 dark:bg-slate-950/60 dark:supports-[backdrop-filter]:bg-slate-950/50 dark:border-slate-800">
 
-        {/* Search */}
-        <div className="relative flex-1 max-w-xs">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Cari nama anggota keluarga..."
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white/70 dark:bg-slate-900/40 dark:border-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          />
-        </div>
-
-        {/* Desktop legend + add root */}
-        <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-500 shrink-0 dark:text-slate-400">
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block" /> Laki-laki</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" /> Perempuan</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-stone-400 inline-block" /> Wafat</span>
-          {totalMembers > 0 && (
+        {/* ── MOBILE SEARCH OVERLAY (tampil saat mobileSearchOpen) ── */}
+        {mobileSearchOpen ? (
+          <div className="flex sm:hidden items-center gap-2 flex-1 animate-fadeIn">
+            <Search size={15} className="shrink-0 text-slate-400 dark:text-slate-500" />
+            <input
+              ref={mobileInputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cari nama anggota keluarga..."
+              autoFocus
+              className="flex-1 py-1.5 text-sm bg-transparent border-none outline-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            />
             <button
-              onClick={handleOpenAddRoot}
-              className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-slate-600 font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
-              title="Tambah leluhur baru (root baru)"
+              onClick={() => { setMobileSearchOpen(false); setSearchTerm(''); }}
+              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+              aria-label="Tutup pencarian"
             >
-              <Plus size={12} strokeWidth={3} />
-              Leluhur Baru
+              <X size={14} />
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          /* ── NORMAL HEADER CONTENT ── */
+          <>
+            {/* Branding */}
+            <div className="flex items-center gap-2 shrink-0">
+              <TreePine className="text-emerald-500" size={22} />
+              <div>
+                <h1 className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">
+                  Dashboard Silsilah Keluarga
+                </h1>
+                <p className="text-[11px] text-slate-400 leading-tight">{totalMembers} anggota tercatat</p>
+              </div>
+            </div>
 
-        {/* Mobile icon-only add root */}
-        {totalMembers > 0 && (
-          <button
-            onClick={handleOpenAddRoot}
-            className="flex sm:hidden items-center justify-center w-8 h-8 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shrink-0 shadow-sm transition-colors"
-            title="Tambah Leluhur Baru"
-            aria-label="Tambah Leluhur Baru"
-          >
-            <Plus size={16} strokeWidth={3} />
-          </button>
+            {/* Desktop Search */}
+            <div className="hidden sm:flex relative flex-1 max-w-xs">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari nama anggota keluarga..."
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white/70 dark:bg-slate-900/40 dark:border-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </div>
+
+            {/* Right side: legend + add root (desktop) */}
+            <div className="hidden sm:flex items-center gap-3 text-[11px] text-slate-500 shrink-0 dark:text-slate-400 ml-auto">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block" /> Laki-laki</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" /> Perempuan</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-stone-400 inline-block" /> Wafat</span>
+              {totalMembers > 0 && (
+                <button
+                  onClick={handleOpenAddRoot}
+                  className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-slate-600 font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
+                  title="Tambah leluhur baru (root baru)"
+                >
+                  <Plus size={12} strokeWidth={3} />
+                  Leluhur Baru
+                </button>
+              )}
+            </div>
+
+            {/* Mobile: search icon + add root icon */}
+            <div className="flex sm:hidden items-center gap-2 ml-auto">
+              <button
+                onClick={() => {
+                  setMobileSearchOpen(true);
+                  setTimeout(() => mobileInputRef.current?.focus(), 50);
+                }}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+                aria-label="Buka pencarian"
+                title="Cari anggota"
+              >
+                <Search size={16} />
+              </button>
+              {totalMembers > 0 && (
+                <button
+                  onClick={handleOpenAddRoot}
+                  className="w-8 h-8 flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-sm transition-colors"
+                  title="Tambah Leluhur Baru"
+                  aria-label="Tambah Leluhur Baru"
+                >
+                  <Plus size={16} strokeWidth={3} />
+                </button>
+              )}
+            </div>
+          </>
         )}
       </header>
 
