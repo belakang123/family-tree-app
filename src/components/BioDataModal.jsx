@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { calculateAge, formatDate, getYear } from '../utils/age';
 
 export default function BioDataModal({ member, isOpen, onClose }) {
+  // spouse & anak urut dihitung di App lewat field tambahan (spouse, childIndex)
+
   const [imageError, setImageError] = useState(false);
 
   if (!isOpen || !member) return null;
@@ -74,7 +76,7 @@ export default function BioDataModal({ member, isOpen, onClose }) {
 
         <div className="p-6">
           {/* Close Button */}
-      <button
+          <button
         onClick={onClose}
         className="absolute top-4 right-4 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/70"
         title="Tutup"
@@ -109,7 +111,19 @@ export default function BioDataModal({ member, isOpen, onClose }) {
 
           <div className="space-y-4 border-t border-slate-200 pt-4 dark:border-slate-700">
 
+            {member.spouse && (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Pasangan</p>
+                <p className="text-sm text-slate-800 dark:text-slate-100 font-medium">
+                  {member.spouse.name} ({member.spouse.gender === 'male' ? 'Suami' : 'Istri'})
+                </p>
+              </div>
+            )}
+
+
+
             {member.birthDate && (
+
               <div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Tanggal Lahir</p>
                 <p className="text-sm text-slate-800 dark:text-slate-100 font-medium">{formatDate(member.birthDate)}</p>
@@ -156,12 +170,28 @@ export default function BioDataModal({ member, isOpen, onClose }) {
               </div>
             )}
 
+            {member.children && member.children.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Anak</p>
+                <div className="mt-1 space-y-1">
+                  {member.children.map((c) => (
+                    <div key={c.id} className="flex items-start justify-between gap-3">
+                      <span className="text-sm text-slate-800 dark:text-slate-100 font-medium">
+                        {`Anak ke-${c.childIndex}: ${c.name}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {member.notes && (
               <div>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Catatan</p>
                 <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">{member.notes}</p>
               </div>
             )}
+
           </div>
 
           <button

@@ -17,12 +17,16 @@ export function getLayoutedElements(nodes, edges, direction = 'TB') {
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({
     rankdir: direction,
-    nodesep: 60,
-    ranksep: 110,
+    nodesep: 120,
+    ranksep: 160,
   });
 
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    const isPair = node.type === 'familyPairNode';
+    dagreGraph.setNode(node.id, {
+      width: isPair ? 448 : NODE_WIDTH,
+      height: isPair ? 160 : NODE_HEIGHT,
+    });
   });
 
   edges.forEach((edge) => {
@@ -33,13 +37,16 @@ export function getLayoutedElements(nodes, edges, direction = 'TB') {
 
   const layoutedNodes = nodes.map((node) => {
     const pos = dagreGraph.node(node.id);
+    const isPair = node.type === 'familyPairNode';
+    const width = isPair ? 448 : NODE_WIDTH;
+    const height = isPair ? 160 : NODE_HEIGHT;
     return {
       ...node,
       targetPosition: 'top',
       sourcePosition: 'bottom',
       position: {
-        x: pos.x - NODE_WIDTH / 2,
-        y: pos.y - NODE_HEIGHT / 2,
+        x: pos.x - width / 2,
+        y: pos.y - height / 2,
       },
     };
   });

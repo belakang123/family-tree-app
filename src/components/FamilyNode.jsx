@@ -151,45 +151,79 @@ export default function FamilyNode({ data }) {
           )}
         </div>
 
-        {data.isEditMode ? (
-          <div className="mt-3 flex gap-1.5">
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                data.onEdit(data);
-              }}
-              className="flex-1 flex items-center justify-center gap-1 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors dark:bg-slate-800 dark:hover:bg-slate-700 dark:active:bg-slate-600 text-slate-700 dark:text-slate-100 text-[11px] font-semibold py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300/70"
-            >
-              <Pencil size={12} />
-              Edit
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                data.onDelete(data.id, data.name);
-              }}
-              className="flex-1 flex items-center justify-center gap-1 bg-red-50 hover:bg-red-100 active:bg-red-200 transition-colors text-red-600 dark:bg-red-950/30 dark:hover:bg-red-900/30 dark:active:bg-red-900/40 text-[11px] font-semibold py-1.5 rounded-lg border border-red-100 dark:border-red-700/50 focus:outline-none focus:ring-2 focus:ring-red-300/70"
-            >
-              <Trash2 size={12} />
-              Hapus
-            </button>
+        <div className="mt-3 flex gap-2">
+          <div className="flex-1 min-w-0">
+            {data.childIndex ? (
+              <div className="mb-2">
+                <span
+                  className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                    data.gender === 'male'
+                      ? 'bg-sky-600/10 text-sky-700 border border-sky-400/20'
+                      : 'bg-rose-600/10 text-rose-700 border border-rose-400/20'
+                  }`}
+                >
+                  Anak ke-{data.childIndex}
+                </span>
+              </div>
+            ) : (
+              <div className="mb-2" />
+            )}            {!data.isExporting && (
+              data.isEditMode ? (
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        data.onEdit(data);
+                      }}
+                      className="btn-edit-member flex-1 flex items-center justify-center gap-1 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors dark:bg-slate-800 dark:hover:bg-slate-700 dark:active:bg-slate-600 text-slate-700 dark:text-slate-100 text-[11px] font-semibold py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300/70"
+                    >
+                      <Pencil size={12} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        data.onDelete(data.id, data.name);
+                      }}
+                      className="btn-delete-member flex-1 flex items-center justify-center gap-1 bg-red-50 hover:bg-red-100 active:bg-red-200 transition-colors text-red-655 dark:bg-red-955/30 dark:hover:bg-red-900/30 dark:active:bg-red-900/40 text-[11px] font-semibold py-1.5 rounded-lg border border-red-100 dark:border-red-700/50 focus:outline-none focus:ring-2 focus:ring-red-300/70"
+                    >
+                      <Trash2 size={12} />
+                      Hapus
+                    </button>
+                  </div>
+                  {typeof data.onAddSpouse === 'function' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        data.onAddSpouse(data.id, data.name, data.gender);
+                      }}
+                      className="btn-add-spouse flex items-center justify-center gap-1 w-full bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 transition-colors text-white text-[11px] font-semibold py-1.5 rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-300/70"
+                    >
+                      + Pasangan
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    data.onAddChild(data.id, data.name);
+                  }}
+                  className="btn-add-child mt-3 flex items-center justify-center gap-1 w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 transition-colors text-white text-[11px] font-semibold py-1.5 rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-300/70"
+                >
+                  <Plus size={12} strokeWidth={3} />
+                  Tambah Anak
+                </button>
+              )
+            )}
           </div>
-        ) : (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              data.onAddChild(data.id, data.name);
-            }}
-            className="mt-3 flex items-center justify-center gap-1 w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 transition-colors text-white text-[11px] font-semibold py-1.5 rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-300/70"
-          >
-            <Plus size={12} strokeWidth={3} />
-            Tambah Anak
-          </button>
-        )}
+        </div>
+
       </div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-slate-500 !w-2 !h-2 !border-0" />
     </div>
   );
 }
+
