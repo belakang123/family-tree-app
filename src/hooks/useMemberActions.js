@@ -138,8 +138,8 @@ export function useMemberActions(members) {
           updateDoc(doc(db, 'members', spouseRef.id), { spouseId: targetMemberId, updatedAt: serverTimestamp() }),
         ]);
       }
-      // ── Add child + spouse together
-      else if (modalState.mode === 'addChildCouple') {
+      // ── Add child + spouse together (form mode can override modal mode)
+      else if (formData.mode === 'addChildCouple' || modalState.mode === 'addChildCouple') {
         const parentId = modalState.parentId ?? null;
         const childInput = formData.childData;
         const spouseInput = formData.spouseData;
