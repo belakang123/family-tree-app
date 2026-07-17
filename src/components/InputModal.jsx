@@ -38,10 +38,16 @@ function PhotoInput({ preview, onChange, onRemove, isEdit }) {
 }
 
 /** Formulir data satu orang (nama, gender, TTL, alamat, hp, foto, wafat) */
-function PersonForm({ prefix, data, onChange }) {
+function PersonForm({ prefix, data, onChange, hideGender = false }) {
   const {
-    name, gender, birthDate, isDeceased, deathDate,
-    alamat, noHp, photoPreview,
+    name,
+    gender,
+    birthDate,
+    isDeceased,
+    deathDate,
+    alamat,
+    noHp,
+    photoPreview,
   } = data;
 
   return (
@@ -59,27 +65,29 @@ function PersonForm({ prefix, data, onChange }) {
       </div>
 
       {/* Gender */}
-      <div>
-        <label className={labelCls}>Jenis Kelamin</label>
-        <div className="flex gap-3">
-          {['male', 'female'].map((g) => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => onChange('gender', g)}
-              className={`flex-1 py-2 rounded-xl text-sm border transition-all duration-150 focus:outline-none focus:ring-2 ${
-                gender === g
-                  ? g === 'male'
-                    ? 'bg-emerald-600/10 border-emerald-500/60 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-300 ring-1 ring-emerald-400/20 focus:ring-emerald-300/70'
-                    : 'bg-rose-600/10 border-rose-500/60 text-rose-700 dark:bg-rose-950/20 dark:text-rose-300 ring-1 ring-rose-400/20 focus:ring-rose-300/70'
-                  : 'bg-white/60 dark:bg-slate-800/20 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-white/80 focus:ring-slate-300/70'
-              }`}
-            >
-              {g === 'male' ? 'Laki-laki' : 'Perempuan'}
-            </button>
-          ))}
+      {!hideGender && (
+        <div>
+          <label className={labelCls}>Jenis Kelamin</label>
+          <div className="flex gap-3">
+            {['male', 'female'].map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => onChange('gender', g)}
+                className={`flex-1 py-2 rounded-xl text-sm border transition-all duration-150 focus:outline-none focus:ring-2 ${
+                  gender === g
+                    ? g === 'male'
+                      ? 'bg-emerald-600/10 border-emerald-500/60 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-300 ring-1 ring-emerald-400/20 focus:ring-emerald-300/70'
+                      : 'bg-rose-600/10 border-rose-500/60 text-rose-700 dark:bg-rose-950/20 dark:text-rose-300 ring-1 ring-rose-400/20 focus:ring-rose-300/70'
+                    : 'bg-white/60 dark:bg-slate-800/20 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-white/80 focus:ring-slate-300/70'
+                }`}
+              >
+                {g === 'male' ? 'Laki-laki' : 'Perempuan'}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tanggal Lahir */}
       <div>
@@ -151,6 +159,10 @@ function PersonForm({ prefix, data, onChange }) {
     </div>
   );
 }
+
+/* ─────────────────────────────────────────────
+   Default person state
+───────────────────────────────────────────── */
 
 /* ─────────────────────────────────────────────
    Default person state
@@ -514,6 +526,7 @@ export default function InputModal({
                   prefix={currentTab.key}
                   data={currentTab.data}
                   onChange={currentTab.update}
+                  hideGender={isRootCouple}
                 />
 
                 {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
