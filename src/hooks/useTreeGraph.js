@@ -75,16 +75,30 @@ export function useTreeGraph({
 
     // Fill missing husband/wife from gender
     for (const bundle of bundleByKey.values()) {
-      if (bundle.husbandId || bundle.wifeId) continue;
-      const ids = bundle.key.startsWith('pair:')
-        ? bundle.key.replace('pair:', '').split(':')
-        : [bundle.anchorPersonId];
-      const p1 = members.find((x) => x.id === ids[0]) ?? null;
-      const p2 = members.find((x) => x.id === ids[1]) ?? null;
-      const male = p1?.gender === 'male' ? p1 : p2?.gender === 'male' ? p2 : null;
-      const female = male ? (male.id === p1?.id ? p2 : p1) : null;
-      if (male) bundle.husbandId = male.id;
-      if (female) bundle.wifeId = female.id;
+      // Only skip if BOTH are already resolved
+      if (bundle.husbandId && bundle.wifeId) continue;
+
+      if (bundle.key.startsWith('pair:')) {
+        // Pair bundle: extract the two IDs embedded in the key
+        // key format: "pair:idA:idB" — we stored them via pairKeyFor which sorts lexicographically
+        const withoutPrefix = bundle.key.slice('pair:'.length);
+        // Split on first colon only, then rejoin in case IDs contained colons
+        const firstColon = withoutPrefix.indexOf(':');
+        const id1 = withoutPrefix.slice(0, firstColon);
+        const id2 = withoutPrefix.slice(firstColon + 1);
+        const p1 = members.find((x) => x.id === id1) ?? null;
+        const p2 = members.find((x) => x.id === id2) ?? null;
+        const male   = p1?.gender === 'male' ? p1 : p2?.gender === 'male' ? p2 : null;
+        const female  = p1?.gender === 'female' ? p1 : p2?.gender === 'female' ? p2 : null;
+        if (!bundle.husbandId && male)   bundle.husbandId = male.id;
+        if (!bundle.wifeId    && female) bundle.wifeId    = female.id;
+      } else {
+        // Solo bundle: assign based on gender
+        const person = members.find((x) => x.id === bundle.anchorPersonId) ?? null;
+        if (!person) continue;
+        if (person.gender === 'male')   bundle.husbandId = person.id;
+        else                            bundle.wifeId    = person.id;
+      }
     }
 
     const bundleIdByPersonId = (personId) => {
