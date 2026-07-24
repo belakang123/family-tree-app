@@ -108,6 +108,16 @@ export function useTreeGraph({
       return spouseId ? pairKeyFor(p.id, spouseId) : pairKeyFor(p.id, null);
     };
 
+    // ── Helper: ambil childOrder dari bundle (pakai anak yg punya parentId)
+    const getBundleChildOrder = (bundle) => {
+      const candidateId = bundle.husbandId ?? bundle.wifeId ?? bundle.anchorPersonId;
+      const person = members.find((x) => x.id === candidateId);
+      if (!person?.parentId) return Number.POSITIVE_INFINITY;
+      const siblings = getOrderedChildren(person.parentId);
+      const idx = siblings.findIndex((x) => x.id === person.id);
+      return idx >= 0 ? idx : Number.POSITIVE_INFINITY;
+    };
+
     // Nodes
     const rawNodes = [];
     for (const bundle of bundleByKey.values()) {
@@ -121,6 +131,7 @@ export function useTreeGraph({
         rawNodes.push({
           id: bundle.key,
           type: 'familyPairNode',
+          _childOrder: getBundleChildOrder(bundle),
           data: {
             husband: { ...husband, childIndex: husbIndex > 0 ? husbIndex : null },
             wife:    { ...wife,    childIndex: wifeIndex > 0 ? wifeIndex : null },
@@ -145,6 +156,7 @@ export function useTreeGraph({
         rawNodes.push({
           id: bundle.key,
           type: 'familyNode',
+          _childOrder: getBundleChildOrder(bundle),
           data: {
             ...person,
             childIndex: childIndex > 0 ? childIndex : null,
@@ -163,7 +175,11 @@ export function useTreeGraph({
       }
     }
 
-    // Edges
+    // Urutkan nodes berdasarkan childOrder agar Dagre mendaftarkan node
+    // sesuai urutan — ini mempengaruhi posisi horizontal sibling
+    rawNodes.sort((a, b) => a._childOrder - b._childOrder);
+
+    // Edges — dikumpulkan dengan _childOrder agar bisa diurutkan
     const rawEdges = [];
     for (const child of members) {
       if (!child.parentId) continue;
@@ -171,10 +187,15 @@ export function useTreeGraph({
       const targetBundleId = bundleIdByPersonId(child.id);
       if (!sourceBundleId || !targetBundleId) continue;
 
+      // Cari urutan anak berdasarkan siblings dari parent yang sama
+      const siblings = getOrderedChildren(child.parentId);
+      const edgeOrder = siblings.findIndex((x) => x.id === child.id);
+
       rawEdges.push({
         id: `e-${sourceBundleId}-${targetBundleId}-${child.id}`,
         source: sourceBundleId,
         target: targetBundleId,
+        _childOrder: edgeOrder >= 0 ? edgeOrder : Number.POSITIVE_INFINITY,
         type: 'smoothstep',
         animated: false,
         style: {
@@ -186,6 +207,10 @@ export function useTreeGraph({
         markerEnd: { type: 'arrowclosed', color: '#818cf8', width: 16, height: 16 },
       });
     }
+
+    // Urutkan edges berdasarkan childOrder — Dagre memakai urutan pendaftaran
+    // edge untuk menentukan posisi horizontal anak (kiri = index kecil)
+    rawEdges.sort((a, b) => a._childOrder - b._childOrder);
 
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rawNodes, rawEdges);
     setNodes(layoutedNodes);
